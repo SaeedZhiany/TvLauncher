@@ -78,7 +78,8 @@ fun TvNavGraph(
         }
     }
 
-    val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>(directive = directive)
+    val listDetailStrategy =
+        rememberListDetailSceneStrategy<NavKey>(shouldHandleSinglePaneLayout = true, directive = directive)
 
     NavDisplay(
         backStack = backStack,
