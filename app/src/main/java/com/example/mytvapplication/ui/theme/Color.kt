@@ -2,12 +2,28 @@ package com.example.mytvapplication.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
-val Black80 = Color(0xFF000000)
+// Primary Colors
+val PrimaryColor = Color(0xFFD0BCFF)
+val PrimaryColorDark = Color(0xFF6650A4)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
-val Black40 = Color(0xFF1C1C1C)
+// Secondary Colors
+val SecondaryColor = Color(0xFFCCC2DC)
+val SecondaryColorDark = Color(0xFF625B71)
+
+// Tertiary Colors
+val TertiaryColor = Color(0xFFEFB8C8)
+val TertiaryColorDark = Color(0xFF7D5260)
+
+// Background & Surface
+val BackgroundLight = Color(0xFFFDFBFF)
+val BackgroundDark = Color(0xFF1C1B1F)
+
+val SurfaceLight = Color(0xFFFDFBFF)
+val SurfaceDark = Color(0xFF1C1B1F)
+
+// Text Colors
+val OnBackgroundLight = Color(0xFF1C1B1F)
+val OnBackgroundDark = Color(0xFFE6E1E5)
+
+val OnSurfaceLight = Color(0xFF1C1B1F)
+val OnSurfaceDark = Color(0xFFE6E1E5)

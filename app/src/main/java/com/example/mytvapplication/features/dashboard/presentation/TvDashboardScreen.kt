@@ -19,8 +19,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -41,6 +39,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.Text
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.mytvapplication.features.dashboard.domain.MovieCard
@@ -63,7 +63,8 @@ fun TvDashboardScreen(
         if (categories.isNotEmpty() && focusedMovieId.isEmpty()) {
             try {
                 firstItemRequester.requestFocus()
-            } catch (_: Exception) {}
+            } catch (_: Exception) {
+            }
         }
     }
 
@@ -131,7 +132,7 @@ private fun CategoryRow(
             text = category.name,
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(start = 58.dp, bottom = 12.dp),
-            color = Color.White.copy(alpha = 0.8f),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
             fontWeight = FontWeight.SemiBold,
         )
 
@@ -167,8 +168,11 @@ private fun CategoryRow(
                 key = { it.id },
             ) { movie ->
                 val fr = remember(movie.id) {
-                    if (category.movies.firstOrNull()?.id == movie.id) firstItemRequester ?: FocusRequester()
-                    else FocusRequester()
+                    if (category.movies.firstOrNull()?.id == movie.id) {
+                        firstItemRequester ?: FocusRequester()
+                    } else {
+                        FocusRequester()
+                    }
                 }
                 focusRequesters[movie.id] = fr
 
@@ -205,7 +209,9 @@ private fun MovieCardItem(
                 delay(1000)
                 onMovieSettled(movie.id)
             }
-        } else null
+        } else {
+            null
+        }
 
         onDispose {
             job?.cancel()
@@ -221,20 +227,19 @@ private fun MovieCardItem(
                 if (it.isFocused) {
                     onFocusGained()
                 }
-            }
-            .focusable()
+            }.focusable()
             .clickable { onMovieClick(movie) }
             .clip(RoundedCornerShape(12.dp))
             .border(
                 width = if (isFocused) 4.dp else 0.dp,
-                color = if (isFocused) Color.White else Color.Transparent,
+                color = if (isFocused) MaterialTheme.colorScheme.primary else Color.Transparent,
                 shape = RoundedCornerShape(12.dp),
-            )
-            .background(Color.DarkGray.copy(alpha = 0.5f)),
+            ).background(MaterialTheme.colorScheme.surfaceVariant),
         contentAlignment = Alignment.BottomStart,
     ) {
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
+            model = ImageRequest
+                .Builder(LocalContext.current)
                 .data(if (isSettled) movie.thumbnail else null)
                 .crossfade(true)
                 .build(),
@@ -251,7 +256,7 @@ private fun MovieCardItem(
         ) {
             Text(
                 text = movie.title,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,

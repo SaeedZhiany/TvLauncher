@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
@@ -23,13 +22,13 @@ fun TvMovieInfoScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.DarkGray.copy(alpha = 0.95f))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f))
             .padding(32.dp),
     ) {
         Text(
             text = movieTitle,
             style = MaterialTheme.typography.headlineMedium,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 24.dp),
         )
 
@@ -45,13 +44,13 @@ private fun InfoRow(label: String, value: String) {
         Text(
             text = "$label: ",
             style = MaterialTheme.typography.labelLarge,
-            color = Color.White.copy(alpha = 0.6f),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             modifier = Modifier.width(100.dp),
         )
         Text(
             text = value,
             style = MaterialTheme.typography.bodyLarge,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }

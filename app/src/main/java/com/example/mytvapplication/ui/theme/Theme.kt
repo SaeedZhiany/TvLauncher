@@ -1,17 +1,11 @@
 package com.example.mytvapplication.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LocalRippleConfiguration
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RippleConfiguration
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.graphics.Color
+import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.darkColorScheme
+import androidx.tv.material3.lightColorScheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TvLauncherTheme(
     isInDarkTheme: Boolean = isSystemInDarkTheme(),
@@ -19,32 +13,29 @@ fun TvLauncherTheme(
 ) {
     val colorScheme = if (isInDarkTheme) {
         darkColorScheme(
-            primary = Black80,
-            secondary = Black40,
-            onSurface = Color.White,
-            tertiary = Pink80,
+            primary = PrimaryColor,
+            secondary = SecondaryColor,
+            tertiary = TertiaryColor,
+            background = BackgroundDark,
+            surface = SurfaceDark,
+            onBackground = OnBackgroundDark,
+            onSurface = OnSurfaceDark,
         )
     } else {
         lightColorScheme(
-            primary = Purple40,
-            secondary = PurpleGrey40,
-            onSurface = Color.Black,
-            tertiary = Pink40,
+            primary = PrimaryColorDark,
+            secondary = SecondaryColorDark,
+            tertiary = TertiaryColorDark,
+            background = BackgroundLight,
+            surface = SurfaceLight,
+            onBackground = OnBackgroundLight,
+            onSurface = OnSurfaceLight,
         )
     }
-
-    val rippleConfig = RippleConfiguration(
-        color = colorScheme.onSurface,
-        rippleAlpha = null,
-    )
 
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
-    ) {
-        CompositionLocalProvider(
-            LocalRippleConfiguration provides rippleConfig,
-            content = content,
-        )
-    }
+        content = content,
+    )
 }

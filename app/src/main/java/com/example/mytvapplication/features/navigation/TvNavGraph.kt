@@ -64,14 +64,11 @@ fun TvNavGraph(
     val windowAdaptiveInfo = currentWindowAdaptiveInfoV2()
 
     // Global Back Handler to prevent app exit in both Portrait and Landscape.
-    // Enabled only when we have Details or Info panes above the Dashboard.
     BackHandler(enabled = backStack.size > 1) {
         backStack.removeLastOrNull()
     }
 
     // Dynamic Directive Strategy:
-    // If only Dashboard is present, force a single partition so it fills the screen.
-    // When Details or Info is added, allow side-by-side partitions.
     val directive = remember(windowAdaptiveInfo, backStack.size) {
         val base = calculatePaneScaffoldDirective(windowAdaptiveInfo)
         if (backStack.size <= 1) {
@@ -86,7 +83,6 @@ fun TvNavGraph(
     NavDisplay(
         backStack = backStack,
         onBack = {
-            // This is the primary back navigation entry point for Navigation3.
             if (backStack.size > 1) {
                 backStack.removeLastOrNull()
             }
@@ -127,7 +123,6 @@ fun TvNavGraph(
                             year = movie.year,
                         )
                         if (backStack.lastOrNull() != nextScreen) {
-                            // Clear previous details if switching between movies in List-Detail mode
                             if (backStack.any { it is Screen.Details }) {
                                 backStack.removeIf { (it is Screen.Details) || (it is Screen.Info) }
                             }

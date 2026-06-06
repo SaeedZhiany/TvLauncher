@@ -21,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -82,7 +81,7 @@ fun TvMovieDetailsScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center,
     ) {
         if (isPlaying) {
@@ -110,12 +109,16 @@ fun TvMovieDetailsScreen(
                     contentScale = ContentScale.Crop,
                 )
 
-                Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f)))
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background.copy(alpha = 0.5f)),
+                )
 
                 Text(
                     text = movieTitle,
                     style = MaterialTheme.typography.displaySmall,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .padding(top = 48.dp),
@@ -129,9 +132,10 @@ fun TvMovieDetailsScreen(
                         .focusRequester(playButtonRequester),
                     scale = IconButtonDefaults.scale(focusedScale = 1.2f),
                     colors = IconButtonDefaults.colors(
-                        containerColor = Color.White.copy(alpha = 0.8f),
-                        contentColor = Color.Black,
-                        focusedContainerColor = Color.White,
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        focusedContainerColor = MaterialTheme.colorScheme.primary,
+                        focusedContentColor = MaterialTheme.colorScheme.onPrimary,
                     ),
                 ) {
                     Icon(
@@ -158,7 +162,9 @@ fun TvMovieDetailsScreen(
                         Icon(
                             imageVector = Icons.Default.Info,
                             contentDescription = "Info",
-                            modifier = Modifier.size(20.dp).padding(end = 8.dp),
+                            modifier = Modifier
+                                .size(20.dp)
+                                .padding(end = 8.dp),
                         )
                         Text(text = "Info")
                     }
