@@ -58,6 +58,14 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
 
+    // Image loading with Coil
+    implementation(libs.coil.compose)
+
+    // Media3 for Video Playback
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.session)
+
     // Navigation 3 components
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.navigation3.runtime)

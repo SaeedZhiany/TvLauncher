@@ -1,7 +1,5 @@
 package com.example.mytvapplication.features.dashboard.presentation
 
-import android.graphics.Bitmap
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,10 +22,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,38 +36,45 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.mytvapplication.features.dashboard.domain.MovieCard
 import com.example.mytvapplication.features.dashboard.domain.MovieCategory
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-/**
- * Principal TV Dashboard Implementation
- *
- * Requirements Met:
- * 1) Focused-Only Image Loading: Images only load if focus settles for 1000ms.
- * 2) No images loaded on launch for visible items (unless focused).
- * 3) Strict network cancellation during fast D-pad browsing.
- */
 @Composable
 fun TvDashboardScreen(
     viewModel: TvDashboardViewModel,
-    onMovieSelected: (String) -> Unit,
+    onMovieSelected: (MovieCard) -> Unit,
 ) {
     val categories by viewModel.categories.collectAsState()
     val focusedMovieId by viewModel.currentGlobalFocusedMovieId.collectAsState()
     val rowFocusMemory by viewModel.rowFocusMemory.collectAsState()
-    val bitmaps by viewModel.bitmaps.collectAsState()
+    val settledIds by viewModel.settledIds.collectAsState()
+
+    val firstItemRequester = remember { FocusRequester() }
+    LaunchedEffect(categories) {
+        if (categories.isNotEmpty() && focusedMovieId.isEmpty()) {
+            try {
+                firstItemRequester.requestFocus()
+            } catch (_: Exception) {}
+        }
+    }
 
     DashboardContent(
         categories = categories,
-        bitmaps = bitmaps,
+        settledIds = settledIds,
+        firstItemRequester = firstItemRequester,
         focusedMovieIdProvider = { focusedMovieId },
         rowFocusMemoryProvider = { rowFocusMemory },
         onFocusChanged = { catId, movId -> viewModel.onMovieFocused(catId, movId) },
+        onMovieSettled = { viewModel.onMovieSettled(it) },
         onMovieClick = onMovieSelected,
     )
 }
@@ -75,11 +82,13 @@ fun TvDashboardScreen(
 @Composable
 private fun DashboardContent(
     categories: List<MovieCategory>,
-    bitmaps: Map<String, Bitmap>,
+    settledIds: Set<String>,
+    firstItemRequester: FocusRequester,
     focusedMovieIdProvider: () -> String,
     rowFocusMemoryProvider: () -> Map<String, String>,
     onFocusChanged: (String, String) -> Unit,
-    onMovieClick: (String) -> Unit,
+    onMovieSettled: (String) -> Unit,
+    onMovieClick: (MovieCard) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier
@@ -94,10 +103,12 @@ private fun DashboardContent(
         ) { category ->
             CategoryRow(
                 category = category,
-                bitmaps = bitmaps,
+                settledIds = settledIds,
+                firstItemRequester = if (categories.firstOrNull()?.id == category.id) firstItemRequester else null,
                 lastFocusedMovieIdProvider = { rowFocusMemoryProvider()[category.id] },
                 focusedMovieIdProvider = focusedMovieIdProvider,
                 onFocusChanged = onFocusChanged,
+                onMovieSettled = onMovieSettled,
                 onMovieClick = onMovieClick,
             )
         }
@@ -107,11 +118,13 @@ private fun DashboardContent(
 @Composable
 private fun CategoryRow(
     category: MovieCategory,
-    bitmaps: Map<String, Bitmap>,
+    settledIds: Set<String>,
+    firstItemRequester: FocusRequester?,
     lastFocusedMovieIdProvider: () -> String?,
     focusedMovieIdProvider: () -> String,
     onFocusChanged: (String, String) -> Unit,
-    onMovieClick: (String) -> Unit,
+    onMovieSettled: (String) -> Unit,
+    onMovieClick: (MovieCard) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -153,15 +166,19 @@ private fun CategoryRow(
                 items = category.movies,
                 key = { it.id },
             ) { movie ->
-                val fr = remember(movie.id) { FocusRequester() }
+                val fr = remember(movie.id) {
+                    if (category.movies.firstOrNull()?.id == movie.id) firstItemRequester ?: FocusRequester()
+                    else FocusRequester()
+                }
                 focusRequesters[movie.id] = fr
 
                 MovieCardItem(
                     movie = movie,
-                    bitmap = bitmaps[movie.id],
+                    isSettled = settledIds.contains(movie.id),
                     focusRequester = fr,
                     isFocusedProvider = { focusedMovieIdProvider() == movie.id },
                     onFocusGained = { onFocusChanged(category.id, movie.id) },
+                    onMovieSettled = onMovieSettled,
                     onMovieClick = onMovieClick,
                 )
             }
@@ -172,13 +189,28 @@ private fun CategoryRow(
 @Composable
 private fun MovieCardItem(
     movie: MovieCard,
-    bitmap: Bitmap?,
+    isSettled: Boolean,
     focusRequester: FocusRequester,
     isFocusedProvider: () -> Boolean,
     onFocusGained: () -> Unit,
-    onMovieClick: (String) -> Unit,
+    onMovieSettled: (String) -> Unit,
+    onMovieClick: (MovieCard) -> Unit,
 ) {
     val isFocused = isFocusedProvider()
+    val scope = rememberCoroutineScope()
+
+    DisposableEffect(movie.id) {
+        val job = if (!isSettled) {
+            scope.launch {
+                delay(1000)
+                onMovieSettled(movie.id)
+            }
+        } else null
+
+        onDispose {
+            job?.cancel()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -191,7 +223,7 @@ private fun MovieCardItem(
                 }
             }
             .focusable()
-            .clickable { onMovieClick(movie.id) }
+            .clickable { onMovieClick(movie) }
             .clip(RoundedCornerShape(12.dp))
             .border(
                 width = if (isFocused) 4.dp else 0.dp,
@@ -201,14 +233,15 @@ private fun MovieCardItem(
             .background(Color.DarkGray.copy(alpha = 0.5f)),
         contentAlignment = Alignment.BottomStart,
     ) {
-        bitmap?.let {
-            Image(
-                bitmap = it.asImageBitmap(),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-            )
-        }
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(if (isSettled) movie.thumbnail else null)
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+        )
 
         Column(
             modifier = Modifier

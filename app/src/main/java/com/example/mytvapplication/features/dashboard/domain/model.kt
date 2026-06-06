@@ -9,7 +9,8 @@ data class MovieCard(
     val thumbnail: String,
     val description: String,
     val rating: String,
-    val year: String
+    val year: String,
+    val videoUrl: String
 )
 
 @Immutable

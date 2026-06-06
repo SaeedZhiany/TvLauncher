@@ -9,6 +9,11 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
@@ -17,6 +22,8 @@ import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -38,6 +45,9 @@ sealed interface Screen : NavKey {
     @Serializable
     data class Details(
         val movieId: String,
+        val movieTitle: String,
+        val thumbnail: String,
+        val videoUrl: String,
     ) : Screen
 }
 
@@ -77,7 +87,18 @@ fun TvNavGraph(
             entry<Screen.Dashboard>(
                 metadata = ListDetailSceneStrategy.listPane(
                     detailPlaceholder = {
-                        Text("Select a note")
+                        Surface(
+                            modifier = Modifier.fillMaxSize(),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(color = MaterialTheme.colorScheme.background),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text("Select a video")
+                            }
+                        }
                     },
                 ),
             ) {
@@ -86,8 +107,13 @@ fun TvNavGraph(
                 }
                 TvDashboardScreen(
                     viewModel = dashboardViewModel,
-                    onMovieSelected = { id ->
-                        val nextScreen = Screen.Details(id)
+                    onMovieSelected = { movie ->
+                        val nextScreen = Screen.Details(
+                            movieId = movie.id,
+                            movieTitle = movie.title,
+                            thumbnail = movie.thumbnail,
+                            videoUrl = movie.videoUrl,
+                        )
                         if (backStack.lastOrNull() != nextScreen) {
                             backStack.add(nextScreen)
                         }
@@ -99,7 +125,9 @@ fun TvNavGraph(
                 metadata = ListDetailSceneStrategy.detailPane(),
             ) { key ->
                 TvMovieDetailsScreen(
-                    movieId = key.movieId,
+                    movieTitle = key.movieTitle,
+                    thumbnail = key.thumbnail,
+                    videoUrl = key.videoUrl,
                     onBackTriggered = {
                         backStack.removeLastOrNull()
                     },
